@@ -1,0 +1,12 @@
+<div class="reservation">
+  <mat-card>
+    <mat-card-title>Book a table</mat-card-title>
+    <mat-card-content>
+      <input placeholder="Your name" [(ngModel)]="name" />
+      <input placeholder="Reservation time" [(ngModel)]="time" />
+    </mat-card-content>
+    <mat-card-actions>
+      <button mat-raised-button color="primary" (click)="submit()">Book</button>
+    </mat-card-actions>
+  </mat-card>
+</div>

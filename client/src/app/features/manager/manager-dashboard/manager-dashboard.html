@@ -1,0 +1,14 @@
+<div class="manager-dashboard">
+  <h2>Manager Dashboard</h2>
+  <div class="cards">
+    <ng-container *ngFor="let t of tables()">
+      <mat-card>
+        <mat-card-title>Table {{ t.table_number }}</mat-card-title>
+        <mat-card-content>Status: {{ t.status }}</mat-card-content>
+        <mat-card-actions>
+          <button mat-button color="primary" (click)="seat(t)">Seat</button>
+        </mat-card-actions>
+      </mat-card>
+    </ng-container>
+  </div>
+</div>

@@ -1,0 +1,15 @@
+<div class="queue">
+  <mat-card>
+    <mat-card-title>Join the Queue</mat-card-title>
+    <mat-card-content>
+      <input placeholder="Your name" [(ngModel)]="name" />
+    </mat-card-content>
+    <mat-card-actions>
+      <button mat-raised-button color="primary" (click)="join()">Join</button>
+    </mat-card-actions>
+    <mat-card-content *ngIf="position() !== null">
+      Your position: {{ position() }}
+    </mat-card-content>
+  </mat-card>
+</div>
+<p>queue-management works!</p>
