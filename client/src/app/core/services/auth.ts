@@ -19,6 +19,15 @@ export class AuthService {
 
   constructor(private api: ApiService) {}
 
+  loadProfile() {
+    return this.api.get<any>('auth/profile').pipe(
+      tap((res) => {
+        const data = (res as any).data || res;
+        if (data) this._user.set(data);
+      })
+    );
+  }
+
   login(credentials: { email: string; password: string }) {
     // Expect server to return { token, user }
     return this.api.post<any>('auth/login', credentials).pipe(

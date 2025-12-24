@@ -1,11 +1,13 @@
 import { Component } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { MatCardModule } from '@angular/material/card';
+
 
 @Component({
   selector: 'app-analytics-view',
-  imports: [],
+  standalone: true,
+  imports: [CommonModule, MatCardModule],
   templateUrl: './analytics-view.html',
-  styleUrl: './analytics-view.scss',
+  styleUrls: ['./analytics-view.scss'],
 })
-export class AnalyticsView {
-
-}
+export class AnalyticsView {}

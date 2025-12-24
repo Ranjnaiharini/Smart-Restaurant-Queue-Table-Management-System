@@ -35,9 +35,10 @@ var __importStar = (this && this.__importStar) || (function () {
 let authController;
 const pool = require('../config/database');
 jest.mock('../config/database', () => ({
-    query: jest.fn(),
+    __esModule: true,
+    default: { query: jest.fn() }
 }));
-const mockedPool = pool;
+const mockedPool = (pool.default || pool);
 describe('authController', () => {
     beforeEach(() => {
         jest.clearAllMocks();

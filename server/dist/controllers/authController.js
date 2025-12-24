@@ -1,7 +1,10 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getProfile = exports.login = exports.register = void 0;
-const pool = require('../config/database');
+const database_1 = __importDefault(require("../config/database"));
 const types_1 = require("../types");
 const helpers_1 = require("../utils/helpers");
 const register = async (req, res) => {
@@ -26,7 +29,7 @@ const register = async (req, res) => {
     }
     try {
         // Check if user already exists
-        const [existingUsers] = await pool.query('SELECT id FROM users WHERE email = ?', [email]);
+        const [existingUsers] = await database_1.default.query('SELECT id FROM users WHERE email = ?', [email]);
         if (existingUsers.length > 0) {
             res.status(409).json((0, helpers_1.errorResponse)('User with this email already exists'));
             return;
@@ -34,7 +37,7 @@ const register = async (req, res) => {
         // Hash password
         const hashedPassword = await (0, helpers_1.hashPassword)(password);
         // Insert user
-        const [result] = await pool.query('INSERT INTO users (name, email, password, role, contact_info) VALUES (?, ?, ?, ?, ?)', [name, email, hashedPassword, role, contact_info || null]);
+        const [result] = await database_1.default.query('INSERT INTO users (name, email, password, role, contact_info) VALUES (?, ?, ?, ?, ?)', [name, email, hashedPassword, role, contact_info || null]);
         // Generate token
         const token = (0, helpers_1.generateToken)({ id: result.insertId, email, role });
         res.status(201).json((0, helpers_1.successResponse)('User registered successfully', {
@@ -67,7 +70,7 @@ const login = async (req, res) => {
     }
     try {
         // Get user
-        const [users] = await pool.query('SELECT * FROM users WHERE email = ?', [email]);
+        const [users] = await database_1.default.query('SELECT * FROM users WHERE email = ?', [email]);
         if (users.length === 0) {
             res.status(401).json((0, helpers_1.errorResponse)('Invalid email or password'));
             return;
@@ -106,7 +109,7 @@ const getProfile = async (req, res) => {
     }
     const userId = user.id;
     try {
-        const [users] = await pool.query('SELECT id, name, email, role, contact_info, created_at FROM users WHERE id = ?', [userId]);
+        const [users] = await database_1.default.query('SELECT id, name, email, role, contact_info, created_at FROM users WHERE id = ?', [userId]);
         if (users.length === 0) {
             res.status(404).json((0, helpers_1.errorResponse)('User not found'));
             return;

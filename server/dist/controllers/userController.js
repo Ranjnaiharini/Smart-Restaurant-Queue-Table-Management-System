@@ -1,12 +1,15 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.deleteUser = exports.updateUser = exports.getUserById = exports.getAllUsers = void 0;
-const pool = require('../config/database');
+const database_1 = __importDefault(require("../config/database"));
 const helpers_1 = require("../utils/helpers");
 const types_1 = require("../types");
 const getAllUsers = async (_req, res) => {
     try {
-        const [users] = await pool.query('SELECT id, name, email, role, contact_info, created_at FROM users ORDER BY id');
+        const [users] = await database_1.default.query('SELECT id, name, email, role, contact_info, created_at FROM users ORDER BY id');
         res.status(200).json((0, helpers_1.successResponse)('Users retrieved successfully', users));
     }
     catch (error) {
@@ -18,7 +21,7 @@ exports.getAllUsers = getAllUsers;
 const getUserById = async (req, res) => {
     const { id } = req.params;
     try {
-        const [users] = await pool.query('SELECT id, name, email, role, contact_info, created_at FROM users WHERE id = ?', [id]);
+        const [users] = await database_1.default.query('SELECT id, name, email, role, contact_info, created_at FROM users WHERE id = ?', [id]);
         if (users.length === 0) {
             res.status(404).json((0, helpers_1.errorResponse)('User not found'));
             return;
@@ -58,12 +61,12 @@ const updateUser = async (req, res) => {
             return;
         }
         values.push(id);
-        const [result] = await pool.query(`UPDATE users SET ${fields.join(', ')} WHERE id = ?`, values);
+        const [result] = await database_1.default.query(`UPDATE users SET ${fields.join(', ')} WHERE id = ?`, values);
         if (result.affectedRows === 0) {
             res.status(404).json((0, helpers_1.errorResponse)('User not found'));
             return;
         }
-        const [updated] = await pool.query('SELECT id, name, email, role, contact_info, created_at FROM users WHERE id = ?', [id]);
+        const [updated] = await database_1.default.query('SELECT id, name, email, role, contact_info, created_at FROM users WHERE id = ?', [id]);
         res.status(200).json((0, helpers_1.successResponse)('User updated successfully', updated[0]));
     }
     catch (error) {
@@ -75,7 +78,7 @@ exports.updateUser = updateUser;
 const deleteUser = async (req, res) => {
     const { id } = req.params;
     try {
-        const [result] = await pool.query('DELETE FROM users WHERE id = ?', [id]);
+        const [result] = await database_1.default.query('DELETE FROM users WHERE id = ?', [id]);
         if (result.affectedRows === 0) {
             res.status(404).json((0, helpers_1.errorResponse)('User not found'));
             return;

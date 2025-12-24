@@ -1,7 +1,10 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.cancelReservation = exports.updateReservation = exports.getAllReservations = exports.getMyReservations = exports.createReservation = void 0;
-const pool = require('../config/database');
+const database_1 = __importDefault(require("../config/database"));
 const types_1 = require("../types");
 const helpers_1 = require("../utils/helpers");
 const createReservation = async (req, res) => {
@@ -18,7 +21,7 @@ const createReservation = async (req, res) => {
     }
     try {
         // Check if table exists and is available
-        const [tables] = await pool.query('SELECT * FROM restaurant_tables WHERE id = ?', [table_id]);
+        const [tables] = await database_1.default.query('SELECT * FROM restaurant_tables WHERE id = ?', [table_id]);
         if (tables.length === 0) {
             res.status(404).json((0, helpers_1.errorResponse)('Table not found'));
             return;
@@ -30,7 +33,7 @@ const createReservation = async (req, res) => {
         // Check for conflicting reservations (within 2 hours)
         const twoHoursBefore = new Date(reservationDate.getTime() - 2 * 60 * 60 * 1000);
         const twoHoursAfter = new Date(reservationDate.getTime() + 2 * 60 * 60 * 1000);
-        const [conflicts] = await pool.query(`SELECT id FROM restaurant_tables 
+        const [conflicts] = await database_1.default.query(`SELECT id FROM restaurant_tables 
        WHERE id = ? AND reservation_time IS NOT NULL 
        AND reservation_time BETWEEN ? AND ?`, [table_id, twoHoursBefore, twoHoursAfter]);
         if (conflicts.length > 0) {
@@ -38,13 +41,13 @@ const createReservation = async (req, res) => {
             return;
         }
         // Get user name
-        const [users] = await pool.query('SELECT name FROM users WHERE id = ?', [userId]);
+        const [users] = await database_1.default.query('SELECT name FROM users WHERE id = ?', [userId]);
         // Create reservation
-        await pool.query(`UPDATE restaurant_tables 
+        await database_1.default.query(`UPDATE restaurant_tables 
        SET status = ?, current_customer_id = ?, current_customer_name = ?, 
            reservation_time = ?, notes = ?
        WHERE id = ?`, [types_1.TableStatus.RESERVED, userId, users[0].name, reservationDate, notes || null, table_id]);
-        const [reservation] = await pool.query('SELECT * FROM restaurant_tables WHERE id = ?', [table_id]);
+        const [reservation] = await database_1.default.query('SELECT * FROM restaurant_tables WHERE id = ?', [table_id]);
         res.status(201).json((0, helpers_1.successResponse)('Reservation created successfully', reservation[0]));
     }
     catch (error) {
@@ -56,7 +59,7 @@ exports.createReservation = createReservation;
 const getMyReservations = async (req, res) => {
     const userId = req.user.id;
     try {
-        const [reservations] = await pool.query(`SELECT * FROM restaurant_tables 
+        const [reservations] = await database_1.default.query(`SELECT * FROM restaurant_tables 
        WHERE current_customer_id = ? AND status = ? AND reservation_time IS NOT NULL
        ORDER BY reservation_time`, [userId, types_1.TableStatus.RESERVED]);
         res.status(200).json((0, helpers_1.successResponse)('Reservations retrieved successfully', reservations));
@@ -69,7 +72,7 @@ const getMyReservations = async (req, res) => {
 exports.getMyReservations = getMyReservations;
 const getAllReservations = async (_req, res) => {
     try {
-        const [reservations] = await pool.query(`SELECT rt.*, u.email, u.contact_info
+        const [reservations] = await database_1.default.query(`SELECT rt.*, u.email, u.contact_info
        FROM restaurant_tables rt
        LEFT JOIN users u ON rt.current_customer_id = u.id
        WHERE rt.status = ? AND rt.reservation_time IS NOT NULL
@@ -89,7 +92,7 @@ const updateReservation = async (req, res) => {
     const userRole = req.user.role;
     try {
         // Get current reservation
-        const [reservations] = await pool.query('SELECT * FROM restaurant_tables WHERE id = ? AND status = ? AND reservation_time IS NOT NULL', [id, types_1.TableStatus.RESERVED]);
+        const [reservations] = await database_1.default.query('SELECT * FROM restaurant_tables WHERE id = ? AND status = ? AND reservation_time IS NOT NULL', [id, types_1.TableStatus.RESERVED]);
         if (reservations.length === 0) {
             res.status(404).json((0, helpers_1.errorResponse)('Reservation not found'));
             return;
@@ -116,8 +119,8 @@ const updateReservation = async (req, res) => {
         }
         const fields = Object.keys(updates).map(key => `${key} = ?`);
         const values = [...Object.values(updates), id];
-        await pool.query(`UPDATE restaurant_tables SET ${fields.join(', ')} WHERE id = ?`, values);
-        const [updated] = await pool.query('SELECT * FROM restaurant_tables WHERE id = ?', [id]);
+        await database_1.default.query(`UPDATE restaurant_tables SET ${fields.join(', ')} WHERE id = ?`, values);
+        const [updated] = await database_1.default.query('SELECT * FROM restaurant_tables WHERE id = ?', [id]);
         res.status(200).json((0, helpers_1.successResponse)('Reservation updated successfully', updated[0]));
     }
     catch (error) {
@@ -131,7 +134,7 @@ const cancelReservation = async (req, res) => {
     const userId = req.user.id;
     const userRole = req.user.role;
     try {
-        const [reservations] = await pool.query('SELECT * FROM restaurant_tables WHERE id = ? AND status = ? AND reservation_time IS NOT NULL', [id, types_1.TableStatus.RESERVED]);
+        const [reservations] = await database_1.default.query('SELECT * FROM restaurant_tables WHERE id = ? AND status = ? AND reservation_time IS NOT NULL', [id, types_1.TableStatus.RESERVED]);
         if (reservations.length === 0) {
             res.status(404).json((0, helpers_1.errorResponse)('Reservation not found'));
             return;
@@ -141,7 +144,7 @@ const cancelReservation = async (req, res) => {
             res.status(403).json((0, helpers_1.errorResponse)('You can only cancel your own reservations'));
             return;
         }
-        await pool.query(`UPDATE restaurant_tables 
+        await database_1.default.query(`UPDATE restaurant_tables 
        SET status = ?, current_customer_id = NULL, current_customer_name = NULL, 
            reservation_time = NULL, notes = NULL
        WHERE id = ?`, [types_1.TableStatus.AVAILABLE, id]);

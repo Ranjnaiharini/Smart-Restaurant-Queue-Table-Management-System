@@ -1,12 +1,15 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getDashboardStats = exports.getQueueAnalytics = exports.getUserStats = exports.getTableAnalytics = void 0;
-const pool = require('../config/database');
+const database_1 = __importDefault(require("../config/database"));
 const helpers_1 = require("../utils/helpers");
 const getTableAnalytics = async (_req, res) => {
     try {
-        const [analytics] = await pool.query('SELECT * FROM table_analytics');
-        const [totalStats] = await pool.query(`SELECT 
+        const [analytics] = await database_1.default.query('SELECT * FROM table_analytics');
+        const [totalStats] = await database_1.default.query(`SELECT 
         COUNT(*) as total_tables,
         SUM(CASE WHEN status = 'Available' THEN 1 ELSE 0 END) as available,
         SUM(CASE WHEN status = 'Occupied' THEN 1 ELSE 0 END) as occupied,
@@ -26,12 +29,12 @@ const getTableAnalytics = async (_req, res) => {
 exports.getTableAnalytics = getTableAnalytics;
 const getUserStats = async (_req, res) => {
     try {
-        const [stats] = await pool.query(`SELECT 
+        const [stats] = await database_1.default.query(`SELECT 
         role,
         COUNT(*) as count
        FROM users
        GROUP BY role`);
-        const [totalUsers] = await pool.query('SELECT COUNT(*) as total FROM users');
+        const [totalUsers] = await database_1.default.query('SELECT COUNT(*) as total FROM users');
         res.status(200).json((0, helpers_1.successResponse)('User statistics retrieved successfully', {
             by_role: stats,
             total_users: totalUsers[0].total
@@ -45,14 +48,14 @@ const getUserStats = async (_req, res) => {
 exports.getUserStats = getUserStats;
 const getQueueAnalytics = async (_req, res) => {
     try {
-        const [queueStats] = await pool.query(`SELECT 
+        const [queueStats] = await database_1.default.query(`SELECT 
         COUNT(*) as total_in_queue,
         MIN(queue_position) as first_position,
         MAX(queue_position) as last_position,
         ROUND(AVG(capacity), 2) as avg_capacity_in_queue
        FROM restaurant_tables
        WHERE queue_position IS NOT NULL`);
-        const [reservationStats] = await pool.query(`SELECT 
+        const [reservationStats] = await database_1.default.query(`SELECT 
         COUNT(*) as total_reservations,
         COUNT(CASE WHEN reservation_time > NOW() THEN 1 END) as upcoming_reservations,
         COUNT(CASE WHEN reservation_time <= NOW() THEN 1 END) as past_due_reservations
@@ -72,19 +75,19 @@ exports.getQueueAnalytics = getQueueAnalytics;
 const getDashboardStats = async (_req, res) => {
     try {
         // Table stats
-        const [tableStats] = await pool.query(`SELECT 
+        const [tableStats] = await database_1.default.query(`SELECT 
         COUNT(*) as total_tables,
         SUM(CASE WHEN status = 'Available' THEN 1 ELSE 0 END) as available,
         SUM(CASE WHEN status = 'Occupied' THEN 1 ELSE 0 END) as occupied,
         SUM(CASE WHEN status = 'Reserved' THEN 1 ELSE 0 END) as reserved
        FROM restaurant_tables`);
         // Queue stats
-        const [queueCount] = await pool.query('SELECT COUNT(*) as count FROM restaurant_tables WHERE queue_position IS NOT NULL');
+        const [queueCount] = await database_1.default.query('SELECT COUNT(*) as count FROM restaurant_tables WHERE queue_position IS NOT NULL');
         // Reservation stats
-        const [reservationCount] = await pool.query(`SELECT COUNT(*) as count FROM restaurant_tables 
+        const [reservationCount] = await database_1.default.query(`SELECT COUNT(*) as count FROM restaurant_tables 
        WHERE reservation_time IS NOT NULL AND reservation_time > NOW()`);
         // User stats
-        const [userCount] = await pool.query('SELECT COUNT(*) as count FROM users');
+        const [userCount] = await database_1.default.query('SELECT COUNT(*) as count FROM users');
         res.status(200).json((0, helpers_1.successResponse)('Dashboard statistics retrieved successfully', {
             tables: tableStats[0],
             queue_length: queueCount[0].count,

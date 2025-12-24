@@ -8,10 +8,9 @@
           Capacity: {{ t.capacity }} — Status: {{ t.status }}
         </mat-card-content>
         <mat-card-actions>
-          <button mat-button color="primary">Join Queue</button>
+          <button mat-button color="primary" (click)="joinQueue(t)">Join Queue</button>
         </mat-card-actions>
       </mat-card>
     </ng-container>
-  </div>
-</div>
-<p>table-list works!</p>
+    </div>
+    </div>

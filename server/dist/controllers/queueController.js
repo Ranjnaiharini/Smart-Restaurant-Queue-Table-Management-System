@@ -1,7 +1,10 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.seatCustomer = exports.leaveQueue = exports.getAllQueueEntries = exports.getQueueStatus = exports.joinQueue = void 0;
-const pool = require('../config/database');
+const database_1 = __importDefault(require("../config/database"));
 const types_1 = require("../types");
 const helpers_1 = require("../utils/helpers");
 const joinQueue = async (req, res) => {
@@ -13,13 +16,13 @@ const joinQueue = async (req, res) => {
     }
     try {
         // Check if user already in queue
-        const [existingQueue] = await pool.query('SELECT id FROM restaurant_tables WHERE current_customer_id = ? AND queue_position IS NOT NULL', [userId]);
+        const [existingQueue] = await database_1.default.query('SELECT id FROM restaurant_tables WHERE current_customer_id = ? AND queue_position IS NOT NULL', [userId]);
         if (existingQueue.length > 0) {
             res.status(400).json((0, helpers_1.errorResponse)('You are already in the queue'));
             return;
         }
         // Get user details
-        const [users] = await pool.query('SELECT name FROM users WHERE id = ?', [userId]);
+        const [users] = await database_1.default.query('SELECT name FROM users WHERE id = ?', [userId]);
         if (users.length === 0) {
             res.status(404).json((0, helpers_1.errorResponse)('User not found'));
             return;
@@ -33,17 +36,17 @@ const joinQueue = async (req, res) => {
             params.push(type_preference);
         }
         query += ' ORDER BY capacity LIMIT 1';
-        const [availableTables] = await pool.query(query, params);
+        const [availableTables] = await database_1.default.query(query, params);
         if (availableTables.length === 0) {
             res.status(404).json((0, helpers_1.errorResponse)('No suitable tables available'));
             return;
         }
         const tableId = availableTables[0].id;
         // Get current max queue position
-        const [maxPosition] = await pool.query('SELECT MAX(queue_position) as max_pos FROM restaurant_tables WHERE queue_position IS NOT NULL');
+        const [maxPosition] = await database_1.default.query('SELECT MAX(queue_position) as max_pos FROM restaurant_tables WHERE queue_position IS NOT NULL');
         const newPosition = (maxPosition[0].max_pos || 0) + 1;
         // Add to queue
-        await pool.query(`UPDATE restaurant_tables 
+        await database_1.default.query(`UPDATE restaurant_tables 
        SET status = ?, current_customer_id = ?, current_customer_name = ?, queue_position = ?
        WHERE id = ?`, [types_1.TableStatus.RESERVED, userId, users[0].name, newPosition, tableId]);
         const estimatedWait = (0, helpers_1.calculateEstimatedWaitTime)(newPosition);
@@ -62,7 +65,7 @@ exports.joinQueue = joinQueue;
 const getQueueStatus = async (req, res) => {
     const userId = req.user.id;
     try {
-        const [queueEntry] = await pool.query(`SELECT rt.*, u.email, u.contact_info 
+        const [queueEntry] = await database_1.default.query(`SELECT rt.*, u.email, u.contact_info 
        FROM restaurant_tables rt
        LEFT JOIN users u ON rt.current_customer_id = u.id
        WHERE rt.current_customer_id = ? AND rt.queue_position IS NOT NULL`, [userId]);
@@ -85,7 +88,7 @@ const getQueueStatus = async (req, res) => {
 exports.getQueueStatus = getQueueStatus;
 const getAllQueueEntries = async (_req, res) => {
     try {
-        const [queue] = await pool.query(`SELECT rt.*, u.email, u.contact_info
+        const [queue] = await database_1.default.query(`SELECT rt.*, u.email, u.contact_info
        FROM restaurant_tables rt
        LEFT JOIN users u ON rt.current_customer_id = u.id
        WHERE rt.queue_position IS NOT NULL
@@ -105,7 +108,7 @@ exports.getAllQueueEntries = getAllQueueEntries;
 const leaveQueue = async (req, res) => {
     const userId = req.user.id;
     try {
-        const connection = await pool.getConnection();
+        const connection = await database_1.default.getConnection();
         await connection.beginTransaction();
         try {
             // Get current queue entry
@@ -146,7 +149,7 @@ const seatCustomer = async (req, res) => {
         return;
     }
     try {
-        const connection = await pool.getConnection();
+        const connection = await database_1.default.getConnection();
         await connection.beginTransaction();
         try {
             // Get table details
