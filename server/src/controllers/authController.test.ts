@@ -2,10 +2,11 @@ let authController: any;
 const pool = require('../config/database');
 
 jest.mock('../config/database', () => ({
-  query: jest.fn(),
+  __esModule: true,
+  default: { query: jest.fn() }
 }));
 
-const mockedPool = pool as unknown as { query: jest.Mock };
+const mockedPool = (pool.default || pool) as unknown as { query: jest.Mock };
 
 describe('authController', () => {
   beforeEach(() => {

@@ -1,7 +1,6 @@
 import type { Request, Response } from 'express';
 import type { RowDataPacket, ResultSetHeader } from 'mysql2';
-import type { Pool } from 'mysql2/promise';
-const pool = (require('../config/database') as unknown) as Pool;
+import pool from '../config/database';
 import { successResponse, errorResponse } from '../utils/helpers';
 import { UserRole } from '../types';
 

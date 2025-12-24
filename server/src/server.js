@@ -42,8 +42,11 @@ catch (err) {
 }
 console.log('authRoutes type:', typeof authRoutes_1.default);
 console.log('tableRoutes type:', typeof (tableRoutes_1 === null || tableRoutes_1 === void 0 ? void 0 : tableRoutes_1.default));
-if (authRoutes_1.default)
+if (authRoutes_1.default) {
+    // Mount auth under both `/api/auth` and `/api` to preserve compatibility with existing tests
     app.use('/api/auth', authRoutes_1.default);
+    app.use('/api', authRoutes_1.default);
+}
 if (tableRoutes_1 === null || tableRoutes_1 === void 0 ? void 0 : tableRoutes_1.default)
     app.use('/api', tableRoutes_1.default);
 if (queueRoutes_1 === null || queueRoutes_1 === void 0 ? void 0 : queueRoutes_1.default)

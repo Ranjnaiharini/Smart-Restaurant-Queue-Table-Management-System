@@ -6,6 +6,7 @@
   "scripts": {
     "test": "jest --runInBand",
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
+    "seed": "ts-node ./scripts/seed-db.ts",
     "build": "tsc",
     "start": "node dist/server.js"
   },

@@ -1,10 +1,12 @@
 import request from 'supertest';
 
 jest.mock('../config/database', () => ({
-  query: jest.fn(),
+  __esModule: true,
+  default: { query: jest.fn() }
 }));
 
 const pool = require('../config/database');
+const db = pool.default || pool;
 let app: any;
 try {
   const serverModule = require('../server');
@@ -21,9 +23,9 @@ describe('Auth routes integration (mocked DB)', () => {
 
   test('POST /api/register - success', async () => {
     // No existing user
-    pool.query.mockResolvedValueOnce([[]]);
+    db.query.mockResolvedValueOnce([[]]);
     // Insert returns insertId
-    pool.query.mockResolvedValueOnce([{ insertId: 2 }]);
+    db.query.mockResolvedValueOnce([{ insertId: 2 }]);
 
     // Debug: log routes registered on the app
     try {
@@ -44,7 +46,7 @@ describe('Auth routes integration (mocked DB)', () => {
   });
 
   test('POST /api/login - invalid credentials', async () => {
-    pool.query.mockResolvedValueOnce([[]]); // user not found
+    db.query.mockResolvedValueOnce([[]]); // user not found
 
     const res = await request(app).post('/api/login').send({ email: 'nope@example.com', password: 'bad' });
 

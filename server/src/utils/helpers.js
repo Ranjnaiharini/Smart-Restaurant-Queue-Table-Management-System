@@ -39,6 +39,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.generateToken = exports.comparePassword = exports.hashPassword = exports.validatePassword = exports.validateEmail = exports.isFutureDate = exports.calculateEstimatedWaitTime = exports.errorResponse = exports.successResponse = void 0;
 var bcrypt_1 = require("bcrypt");
 var jsonwebtoken_1 = require("jsonwebtoken");
+// Compatibility shim: if the imported module is returned directly (CommonJS),
+// ensure we access the functions correctly (some environments put functions on the module itself)
+var bcrypt = (bcrypt_1 && bcrypt_1.default) ? bcrypt_1.default : bcrypt_1;
+var jwt = (jsonwebtoken_1 && jsonwebtoken_1.default) ? jsonwebtoken_1.default : jsonwebtoken_1;
 var successResponse = function (message, data) { return ({ success: true, message: message, data: data }); };
 exports.successResponse = successResponse;
 var errorResponse = function (message, details) { return ({ success: false, message: message, details: details }); };
@@ -68,13 +72,13 @@ var hashPassword = function (password) { return __awaiter(void 0, void 0, void 0
     var saltRounds;
     return __generator(this, function (_a) {
         saltRounds = 10;
-        return [2 /*return*/, bcrypt_1.default.hash(password, saltRounds)];
+        return [2 /*return*/, bcrypt.hash(password, saltRounds)];
     });
 }); };
 exports.hashPassword = hashPassword;
 var comparePassword = function (password, hash) { return __awaiter(void 0, void 0, void 0, function () {
     return __generator(this, function (_a) {
-        return [2 /*return*/, bcrypt_1.default.compare(password, hash)];
+        return [2 /*return*/, bcrypt.compare(password, hash)];
     });
 }); };
 exports.comparePassword = comparePassword;
@@ -82,7 +86,7 @@ var generateToken = function (payload, expiresIn) {
     if (expiresIn === void 0) { expiresIn = '7d'; }
     var secret = (process.env.JWT_SECRET || 'dev_secret');
     // use any cast to avoid tight jwt typings in this utility
-    return jsonwebtoken_1.default.sign(payload, secret, { expiresIn: expiresIn });
+    return jwt.sign(payload, secret, { expiresIn: expiresIn });
 };
 exports.generateToken = generateToken;
 exports.default = {};

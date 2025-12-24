@@ -37,7 +37,8 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getProfile = exports.login = exports.register = void 0;
-var pool = require('../config/database');
+var _dbModule = require('../config/database');
+var pool = (_dbModule && _dbModule.default) ? _dbModule.default : _dbModule;
 var types_1 = require("../types");
 var helpers_1 = require("../utils/helpers");
 var register = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
